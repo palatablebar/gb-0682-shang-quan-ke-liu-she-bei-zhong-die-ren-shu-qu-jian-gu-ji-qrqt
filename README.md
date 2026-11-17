@@ -19,10 +19,21 @@ docker compose up --build -d
 - 人数估界：`/m5_calculate`、`/api/m5_calculate`
 - 日汇对账：`/m6_reconcile`、`/api/m6_reconcile`
 - 报告归档：`/m7_archive`、`/api/m7_archive`
+- 日报封存：`/dayreport`、`/api/dayreport`
 
 ## 核心规则
 
 无法识别个人时只输出满足区域交集约束的人数上下界；矛盾观测隔离而非伪造精确人数。完整数值、边界和异常定义见 `docs/DATA-DICTIONARY.md`。
+
+## 日报封存
+
+裁决：**按期封存，不等补发到齐**。截点一到即以当前观测批次封存当日正式日报；晚到的设备补发合并进当日批次后，仅结论变化的时段标待重核，未覆盖时段沿用上一封存的已核结论。
+
+- 上传：`POST /api/dayreport/ingest`（`csv` 或 `sample`）。首个业务日成为基准，之后同日上传均为补发；一次上传跨多个业务日返回 `DAY_SPAN`。
+- 幂等：同一补发按内容哈希登记一次，重试返回 `deduped` 且不新增版本；`POST /api/dayreport/<day>/seal` 对同一观测批次重复封存返回既有封存。
+- 同一批观测：核对与日汇总都由"基准+已登记补发"合并重放产生，页面、封存与导出始终一致。
+- 可见性：每次封存记录补发范围（各批次的覆盖时段）与待重核范围，见页面与 `GET /api/dayreport/seals/<seal_id>/export.csv`。
+- 复核：`POST /api/dayreport/seals/<seal_id>/review` 携带当前版本，陈旧复核返回409。
 
 ## 验证
 

@@ -13,6 +13,7 @@
 | M5 人数估界 | 查看并复算人数估界 | `/api/m5_calculate` | `app/modules/m5_calculate/rules.py` | `tests/test_calculate.py` |
 | M6 日汇对账 | 查看并复算日汇对账 | `/api/m6_reconcile` | `app/modules/m6_reconcile/compare.py` | `tests/test_reconcile.py` |
 | M7 报告归档 | 查看并复算报告归档 | `/api/m7_archive` | `app/modules/m7_archive/export_out.py` | `tests/test_archive.py` |
+| 日报封存 | 按期封存并吸收补发 | `/api/dayreport` | `app/dayreport.py` | `tests/test_dayreport.py` |
 
 ## 陷阱登记
 
@@ -31,6 +32,11 @@
 | TRAP-26 | 旧版本复核 | 覆盖新结论 | 事务条件更新 | `app/store.py` | `tests/test_archive.py::test_stale_review` |
 | TRAP-11 | 时区混用 | 同刻不同桶 | UTC归整 | `app/modules/m2_mapping/coerce.py` | `tests/test_versions.py::test_same_instant` |
 | TRAP-19 | 三方约束矛盾 | 输出伪精确数 | 非负原子区域可行检查 | `app/modules/m5_calculate/rules.py` | `tests/test_calculate.py::test_three_way_contradiction` |
+| TRAP-27 | 补发重试 | 重复登记新增版本 | 内容哈希幂等登记 | `app/store.py` | `tests/test_dayreport.py::test_patch_retry_no_new_version` |
+| TRAP-28 | 重复封存 | 同批次多版本 | (日,批次键)唯一 | `app/store.py` | `tests/test_dayreport.py::test_seal_idempotent_same_batch` |
+| TRAP-29 | 补发整日重跑 | 已核时段全作废 | 时段指纹diff沿用 | `app/dayreport.py` | `tests/test_dayreport.py::test_changed_buckets_pending_uncovered_carried` |
+| TRAP-30 | 跨日混装 | 日报归属错乱 | 单日校验拒绝 | `app/dayreport.py` | `tests/test_dayreport.py::test_day_span_rejected` |
+| TRAP-31 | 异构补发 | 合并后表头错位 | 登记前合并预检 | `app/dayreport.py` | `tests/test_dayreport.py::test_header_mismatch_patch_rejected` |
 
 ## 对账规则
 
